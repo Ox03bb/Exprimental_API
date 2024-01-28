@@ -38,6 +38,7 @@ INSTALLED_APPS = [
     'django.contrib.messages',
     'django.contrib.staticfiles',
     'debug_toolbar',
+    'rest_framework.authtoken',
     'app1',
     'rest_framework'
 ]
@@ -142,9 +143,15 @@ REST_FRAMEWORK = {
         'rest_framework_xml.renderers.XMLRenderer',
     ],
     
-    'DEFAULT_PERMISSION_CLASSES': [
-        # 'rest_framework.permissions.IsAuthenticated', #When activate thise line only Auth users can use API
+    'DEFAULT_AUTHENTICATION_CLASSES': [
+        'rest_framework.authentication.TokenAuthentication',
+        # 'rest_framework.permissions.AllowAny', 
     ],
+    
+    # 'DEFAULT_PERMISSION_CLASSES': [
+
+    #     'rest_framework.permissions.IsAuthenticated', #When activate thise line only Auth users can use API
+    # ],
     
     
 }

@@ -17,8 +17,10 @@ class BookSrlz(serializers.Serializer):
     title   = serializers.CharField(max_length=255)
     author  = serializers.CharField(max_length=255)
     price   = serializers.DecimalField(max_digits=5,decimal_places=2)
-    inv     = serializers.BooleanField(default=False)
-    tax     = serializers.SerializerMethodField()
+    inv     = serializers.BooleanField(default=False,write_only=True) #icant read this part kyn wci #?read_only
+    tax     = serializers.SerializerMethodField(method_name = "get_tax") #method_name = "get_tax"
+    #? price_after_tax = serializers.SerializerMethodField(method_name = 'calculate_tax')
+
     # category = serializers.HyperlinkedRelatedField(
     #     queryset = category.objects.all(),
     #     view_name='category-detail'
@@ -38,7 +40,7 @@ class BookSrlz(serializers.Serializer):
         
         try:    
             
-            #prc = obj.get('price') # hadi sa3at ysraw fiha problems tweli ma t getsh e data so ==> plan B
+            # prc = obj.get('price') # hadi sa3at ysraw fiha problems tweli ma t getsh e data so ==> plan B
             prc = getattr(obj, 'price', None)
             
             if prc:

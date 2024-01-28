@@ -11,42 +11,66 @@ from .models import book
 from .serializers   import BookSrlz
 from rest_framework import generics
 
+from django.core.paginator import Paginator, EmptyPage
+
+
+from rest_framework.permissions    import IsAuthenticated
+from rest_framework.authentication import SessionAuthentication,BasicAuthentication,TokenAuthentication
+from rest_framework.decorators      import authentication_classes,permission_classes
+
+
 #? use To get data from the body of rqst request.data.get("xxxx")
 
 #? requestd.GET
 
+# @api_view(['GET'])
+# @permission_classes([IsAuthenticated])
+# def auth_only(rqst):
+#         return Response("Acsses Done")
 
+@api_view(['GET'])
+def auth_only(rqst):
+    if rqst.user.is_authenticated:
+        return Response("Acsses Done")
+    else:
+        return Response("None",status=401)
+
+    
 @api_view(['GET', 'POST'])
 def books(rqst):
     from .models import book
     if rqst.method == 'GET':
     
         books = book.objects.all()
-        sr   = BookSrlz(books,many=True)
-        
+    
         name = rqst.query_params.get("name")
-        ord = rqst.query_params.get("ord") # ordring by
+        ord  = rqst.query_params.get("ord") # ordring by
         
-        prc  = rqst.query_params.get("prc")
-        
+        prc     = rqst.query_params.get("prc")
         min_prc = rqst.query_params.get("min_prc")
         max_prc = rqst.query_params.get("max_prc")
         
-        if min_prc and max_prc:
-            bk = books.filter(price__gte=min_prc, price__lte=max_prc)
-            sr = BookSrlz(bk,many=True) 
+        page     = rqst.query_params.get("pg",default =1)
+        pr_page = rqst.query_params.get("pr_pg",default =10)
         
+        if min_prc and max_prc:
+            books = books.filter(price__gte=min_prc, price__lte=max_prc) 
         if prc:
-            bk = books.filter(price=prc)
-            sr = BookSrlz(bk,many=True) 
+            books = books.filter(price=prc)
         if name:
-            bk = books.filter(title__contains=name)
-            sr = BookSrlz(bk,many=True) 
+            books = books.filter(title__contains=name)
             
         if ord:
-            bk = books.order_by(ord)   #to search dejust add "-" befor the val ex: ?ord=-price
-            sr = BookSrlz(bk,many=True) 
-          
+            ord_filds = ord.split(",")
+            # books = books.order_by(ord)   #to search dejust add "-" befor the val ex: ?ord=-price
+            books = books.order_by(*ord_filds)
+            
+        pgntr = Paginator(books,per_page = pr_page)
+        try:
+            books = pgntr.page(number=page)
+        except EmptyPage:
+            books = []
+        sr = BookSrlz(books,many=True) 
         return Response({"Books":sr.data},200)
         
     if rqst.method == 'POST':
