@@ -20,12 +20,19 @@ import debug_toolbar
 from app1 import views
 from rest_framework.authtoken.views import obtain_auth_token
 
+#8d9165c7ff216a235b07290fd7a16cf69611e79f
+
 urlpatterns = [
     path('admin/', admin.site.urls),
     path('api/', include('app1.urls')),
     path('',views.hello),
     path('auth/',views.auth_only),
+    path('usr/',views.crt_usr),
     path('get-tkn/',obtain_auth_token),
+    path('thr/',views.check_throttle), 
+    path('grp/',views.mngr_only), 
+
+       
     # path('api-auth/', include('rest_framework.urls'))
     path('__debug__/', include(debug_toolbar.urls)),
 ]

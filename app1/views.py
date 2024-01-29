@@ -7,8 +7,9 @@ from rest_framework.decorators  import api_view
 from rest_framework             import status
 
 from .models import book
+from django.contrib.auth.models import User
 
-from .serializers   import BookSrlz
+from .serializers   import BookSrlz,UserSrlz
 from rest_framework import generics
 
 from django.core.paginator import Paginator, EmptyPage
@@ -16,18 +17,66 @@ from django.core.paginator import Paginator, EmptyPage
 
 from rest_framework.permissions    import IsAuthenticated
 from rest_framework.authentication import SessionAuthentication,BasicAuthentication,TokenAuthentication
-from rest_framework.decorators      import authentication_classes,permission_classes
+from rest_framework.decorators      import authentication_classes,permission_classes,throttle_classes
 
+from rest_framework.throttling import AnonRateThrottle,UserRateThrottle
+
+from .throttles import call_1_min
 
 #? use To get data from the body of rqst request.data.get("xxxx")
 
 #? requestd.GET
+
+
+@api_view(['GET'])
+# @permission_classes([IsAuthenticated])
+def mngr_only(rqst):
+    if rqst.user.groups.filter(name="manager").exists():
+            return Response("Done",status=200)    
+    else:
+        return Response("None",status=403)
+
+@api_view(['GET'])
+# @throttle_classes([AnonRateThrottle,UserRateThrottle]) #default vals
+@throttle_classes([call_1_min])
+def check_throttle(rqst):
+    return Response("check_throttle")    
+
 
 # @api_view(['GET'])
 # @permission_classes([IsAuthenticated])
 # def auth_only(rqst):
 #         return Response("Acsses Done")
 
+@api_view(['POST'])
+def crt_usr(rqst):
+    if rqst.user.is_authenticated:
+        return Response("you can't create new account",status=401)
+    else:
+        dt = rqst.data.get           
+        srlz = UserSrlz(data = dt)
+        if srlz.is_valid():
+            usr = srlz.validated_data.get('username')
+            if User.objects.filter(username=usr).exists():
+                return Response("this username is already used", status=400)
+            
+            else:
+                srlz.save()
+                return Response({"msg": "Created"}, status=201)
+        else:
+            return Response(srlz.errors, status=400)
+            
+        #     User.objects.create(**dt)
+        #     return Response({"msg":"Created"},201) 
+    
+        # usr = User.objects.get(id=srlz.username)
+        # return Response("this user name alrdy used",status=400)
+            
+        
+        
+        return Response("this user name alrdy used",status=400)
+            
+            
 @api_view(['GET'])
 def auth_only(rqst):
     if rqst.user.is_authenticated:
