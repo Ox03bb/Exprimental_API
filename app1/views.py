@@ -14,7 +14,6 @@ from rest_framework import generics
 
 from django.core.paginator import Paginator, EmptyPage
 
-
 from rest_framework.permissions    import IsAuthenticated
 from rest_framework.authentication import SessionAuthentication,BasicAuthentication,TokenAuthentication
 from rest_framework.decorators      import authentication_classes,permission_classes,throttle_classes
@@ -23,15 +22,21 @@ from rest_framework.throttling import AnonRateThrottle,UserRateThrottle
 
 from .throttles import call_1_min
 
+from rest_framework.authtoken.models import Token
+
 #? use To get data from the body of rqst request.data.get("xxxx")
 
 #? requestd.GET
 
+#! to get a data from rqst the is 3 method 01/ rqst.what_u_wnat.related Ex: rqst.user or rqst.user.id 
+#! rqst.query_params from linke
+#! rqst.data.get("...") or rqst.data['...']
+#! rqst.META.get("...") or rqst.META['...']
 
 @api_view(['GET'])
 # @permission_classes([IsAuthenticated])
 def mngr_only(rqst):
-    if rqst.user.groups.filter(name="manager").exists():
+    if rqst.user.groups.filter(name='manager').exists():
             return Response("Done",status=200)    
     else:
         return Response("None",status=403)
@@ -50,22 +55,31 @@ def check_throttle(rqst):
 
 @api_view(['POST'])
 def crt_usr(rqst):
+    
     if rqst.user.is_authenticated:
-        return Response("you can't create new account",status=401)
+        return Response("you can't create new account",status=403)
     else:
-        dt = rqst.data.get           
-        srlz = UserSrlz(data = dt)
+        dt = rqst.data          
+        srlz = UserSrlz(data=dt)
         if srlz.is_valid():
             usr = srlz.validated_data.get('username')
+            pss = rqst.data["password"]
             if User.objects.filter(username=usr).exists():
-                return Response("this username is already used", status=400)
+                return Response("this username is already used", status=403)
             
             else:
-                srlz.save()
+                # srlz.save()  #!hadd nesta3mloha 8ir m3a mode.Szlr 
+                User.objects.create_user(username=usr,password=pss)
+               
+                # obj = User.objects.create(username=usr)  Other way
+                # obj.set_password(raw_password=pss)
                 return Response({"msg": "Created"}, status=201)
+            
         else:
             return Response(srlz.errors, status=400)
-            
+        
+        
+                
         #     User.objects.create(**dt)
         #     return Response({"msg":"Created"},201) 
     
@@ -74,7 +88,6 @@ def crt_usr(rqst):
             
         
         
-        return Response("this user name alrdy used",status=400)
             
             
 @api_view(['GET'])
@@ -87,6 +100,9 @@ def auth_only(rqst):
     
 @api_view(['GET', 'POST'])
 def books(rqst):
+    id = rqst.user.id
+
+    print("\033[92m",id,"\033[0m")
     from .models import book
     if rqst.method == 'GET':
     
@@ -143,6 +159,8 @@ def hello(self):
 class BookView(APIView):
 
     def get(self, request,inp=None): 
+        
+
         try:
             try:        
             
@@ -198,4 +216,11 @@ class BookView(APIView):
             
             return Response({"msg": "book Note found" }, status.HTTP_404_NOT_FOUND )
    
-
+@api_view(['GET'])
+def logout(rqst):
+    id = rqst.user.id
+    if id:
+        Token.objects.filter(user_id=id).delete()  
+        return Response({"msg": "Logout Done"})
+    else:
+        return Response({"msg": "You are not AuthNed" },403) 

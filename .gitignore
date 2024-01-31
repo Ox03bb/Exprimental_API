@@ -1,2 +1,5 @@
 *.pyc
 __pycache__
+__pycache__/*.pyc
+StApi/__pycache__/*
+app1/__pycache__/*

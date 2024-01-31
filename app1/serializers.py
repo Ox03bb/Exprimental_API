@@ -4,8 +4,9 @@ from .models import book,category,book_ctgr
 from django.contrib.auth.models import User
 
 class UserSrlz(serializers.Serializer):
-    id = serializers.IntegerField(read_only=True)
+    id       = serializers.IntegerField(read_only=True)
     username = serializers.CharField(max_length=150)
+    
     password = serializers.CharField(write_only=True)
     # email = serializers.EmailField(NULL=True)
     

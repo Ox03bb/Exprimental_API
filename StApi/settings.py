@@ -40,7 +40,8 @@ INSTALLED_APPS = [
     'debug_toolbar',
     'rest_framework.authtoken',
     'app1',
-    'rest_framework'
+    'rest_framework',
+    'djoser',
 ]
 
 MIDDLEWARE = [
@@ -145,6 +146,8 @@ REST_FRAMEWORK = {
     
     'DEFAULT_AUTHENTICATION_CLASSES': [
         'rest_framework.authentication.TokenAuthentication',
+        'rest_framework.authentication.SessionAuthentication',
+
         # 'rest_framework.permissions.AllowAny', 
     ],
     
@@ -153,8 +156,8 @@ REST_FRAMEWORK = {
     #     'rest_framework.permissions.IsAuthenticated', #When activate thise line only Auth users can use API
     # ],
     'DEFAULT_THROTTLE_CLASSES': [
-        'rest_framework.throttling.AnonRateThrottle',
-        'rest_framework.throttling.UserRateThrottle'
+        # 'rest_framework.throttling.AnonRateThrottle',
+        # 'rest_framework.throttling.UserRateThrottle'
     ],
     'DEFAULT_THROTTLE_RATES': {
         'anon': '2/min',
@@ -167,3 +170,7 @@ REST_FRAMEWORK = {
 INTERNAL_IPS = [
     '127.0.0.1',  # Add your development machine IP here
 ]
+
+DJOSER = {
+    "USER_ID_FIELD" : "username"
+}
